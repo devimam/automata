@@ -16,6 +16,12 @@ All rights reserved.
     var labelbgColor='#fff0e6';
     var stateSize=20;
 
+    ///------------------------------overwriting sigma functionality--------------------------------
+    ///------------------------------node id to nodel label return funtion------------------------------
+    sigma.classes.graph.addMethod('getNodeLabel', function(nodeid){
+        return this.nodesIndex[nodeid].label;
+    });
+
     ///initializing the sigma graph
     var myGraph=new sigma.classes.graph();
     myGraph.read({
@@ -470,162 +476,234 @@ All rights reserved.
       console.log(event);
     });
 
-    ///--------------------formal definition generation----------------------------
-    document.getElementById('generatebtn').addEventListener('click',generateformaldef);
-    function generateformaldef(e){
-        var basicgraph=s.graph;
-        console.log(basicgraph);
+    ///------------------------------js object builder----------------------------------
+    function buildobj(){
+        var obj=new Object();
+        obj.errors=[]; ///this array will contain all the errors
 
-        var allstates=s.graph.nodes();
-        var alltransitions=s.graph.edges();
+        var basicgraph=s.graph;
+        var allstates=basicgraph.nodes();
+        var alltransitions=basicgraph.edges();
 
         if(allstates.length>0){
-            var startstatecount=0;
+            ///at least 1 state exists
 
-            ///showing component 1,4,5
-            var comp1arr=[];
-            var comp4string="";
-            var comp5arr=[];
+            ///calculating components number 1,4,5
+            var comp1arr=[]; ///set of states, ids
+            var comp2arr=[]; ///Alphabet or, set of symbols
+            var comp3obj=new Object(); ///transition table object, contains state ids
+            var comp4string=""; ///start state, id
+            var comp5arr=[]; ///set of final states, ids
+
+            ///using a start state counter to find out more than one start states
+            var startstatecount=0;
             for(var ind in allstates){
                 var tmpstate=allstates[ind];
-                comp1arr.push(tmpstate.label);
+                var tmpstateid=tmpstate.id;
+
+                comp1arr.push(tmpstateid); ///adding the state
 
                 ///testing start state
                 if(tmpstate.type=='startstate' || tmpstate.type=='bothstate'){
-                    comp4string=tmpstate.label;
+                    comp4string=tmpstateid;
                     startstatecount++;
                 }
 
                 ///testing final state
                 if(tmpstate.type=='finalstate'  || tmpstate.type=='bothstate'){
-                    comp5arr.push(tmpstate.label);
+                    comp5arr.push(tmpstateid);
                 }
             }
 
             if(startstatecount==1){
-                document.getElementById('comp1').innerText=comp1arr.join(' , ');
-                document.getElementById('comp4').innerText=comp4string;
-                document.getElementById('comp5').innerText=comp5arr.join(' , ');;
+                ///only 1 start state found
 
-                ///showing components 2,3
-                var comp2arr=[];
+                ///finding out component 2
+                var arrofsymbols=[]; ///it will contain all symbols with repetition
                 for(var ind in alltransitions){
                     var tmpedge=alltransitions[ind];
+                    var tmpedgelabel=tmpedge.label;
 
-                    var edgelabel=tmpedge.label;
-                    var tmparr=edgelabel.split(','); ///splitting all indivisual alphabets
+                    var tmparr=tmpedgelabel.split(','); ///splitting all individual alphabets
 
-                    comp2arr=comp2arr.concat(tmparr);
+                    arrofsymbols=arrofsymbols.concat(tmparr);
                 }
-
-                ///comp2arr contains repeated alphabets
-                ///finding out unique components
-                var uniquearr = comp2arr.filter((item, i, ar) => ar.indexOf(item) === i);
-                ///removing epsilon and any empty characters
-                var uniquearr1 = uniquearr.filter((item,i,ar) => (item==String.fromCharCode(949) || item=="") ? false : true);
+                ///finding out unique symbols
+                var uniquesymbols = arrofsymbols.filter((item, i, ar) => ar.indexOf(item) === i);
+                ///removing empty character alphabets
+                var comp2arr = uniquesymbols.filter((item,i,ar) => (item=="") ? false : true);
                 ///sorting the alphabet set
-                uniquearr1.sort();
-                var comp2string=uniquearr1.join(' , ');
-                console.log(comp2string);
-                document.getElementById('comp2').innerText=comp2string;
+                comp2arr.sort();
 
-                ///generating transition table here
-                var norows=allstates.length;
-                var nocols=uniquearr1.length;
-                var isepsilon=false;
-                console.log(norows+" "+nocols);
-
-                var tablestring="";
-                tablestring+="<table class='table table-striped'>";
-                    ///writing table heading section
-                    tablestring+="<thead><tr>";
-                        ///adding first empty column
-                        tablestring+="<th></th>";
-                        ///adding 1 column per alhapbet symbol
-                        for(var ind in uniquearr1){
-                            tablestring+="<th>"+uniquearr1[ind]+"</th>";
-                        }
-                        ///creating epsilon column if needed
-                        ///remember: uniquearr1 contains no epsilon and empty string
-                        ///so we need uniquearr variable only
-                        if(uniquearr.indexOf(String.fromCharCode(949))!=-1){
-                            isepsilon=true;
-                            tablestring+="<th>"+String.fromCharCode(949)+"</th>";
-                        }
-                    tablestring+="</tr></thead>";
-
-                    ///writing table body section
-                    tablestring+="<tbody>";
-                        ///adding rows for each state
-                        for(var ind in allstates){
-                            var tmpstid=allstates[ind].id;
-                            tablestring+="<tr>";
-                                tablestring+="<th>"+comp1arr[ind]+"</th>";
-                                for(var i=0;i<nocols;i++){
-                                    tablestring+="<td>{ <span id='cell_"+tmpstid+"_"+uniquearr1[i]+"'></span> }</td>";
-                                }
-                                if(isepsilon==true){
-                                    var curcellid="cell_"+tmpstid;
-                                    tablestring+="<td>{ <span id='"+curcellid+"'></span> }</td>";
-                                }
-                            tablestring+="</tr>";
-                        }
-                    tablestring+="</tbody>";
-
-                tablestring+="</table>";
-                console.log(tablestring);
-                document.getElementById('comp3').innerHTML=tablestring;
-
-                ///traversing all the edges
+                ///finding out component 3
                 for(var ind in alltransitions){
                     var tmpedge=alltransitions[ind];
-                    var tmplabel=tmpedge.label;
+                    var tmpedgelabel=tmpedge.label;
+
                     var src=tmpedge.source;  ///this returns only node id
-                    var srclabel=src;
                     var dest=tmpedge.target; /// this returns only node id
-                    var destlabel=dest;
-                    for(var ind1 in allstates){
-                        var tmp1state=allstates[ind1];
-                        if(tmp1state.id==dest){
-                            destlabel=tmp1state.label;
-                            break;
-                        }
-                    }
 
-                    console.log(tmplabel+" "+src+" "+dest);
-
-                    var chars=tmplabel.split(',');
-                    console.log(chars);
+                    var chars=tmpedgelabel.split(',');
                     for(var ind1 in chars){
-                        ///generating html table cell id to edit
-                        var cellid="cell_"+src;
+                        ///for each input symbol we are saving the destination to cell src, alphabet
+                        var symbol=chars[ind1];
 
-                        var tmpsymbol=chars[ind1];
-                        if(tmpsymbol!=String.fromCharCode(949)) cellid+="_"+tmpsymbol;
+                        ///first checking whether the src already exists within comp2obj
+                        var comp3objkeys=Object.keys(comp3obj);
+                        if(comp3objkeys.indexOf(src)!=-1){
+                            ///the object has key named 'src'
 
-                        var cell=document.getElementById(cellid);
-                        console.log(cellid);
-                        console.log(cell);
-                        var curcontent=cell.innerText;
-                        if(curcontent=="") curcontent+=destlabel;
-                        else curcontent+=" , "+destlabel;
+                            ///now checking whether key exists for the input symbol
+                            var symbolkeys=Object.keys(comp3obj[src]);
+                            if(symbolkeys.indexOf(symbol)!=-1){
+                                comp3obj[src][symbol].push(dest);
+                            }
+                            else{
+                                ///creating key for this new symbol
+                                comp3obj[src][symbol]=[];
+                                comp3obj[src][symbol].push(dest);
+                            }
+                        }
+                        else{
+                            ///creating new entry for src
+                            comp3obj[src]=new Object();
+                            comp3obj[src][symbol]=[];
+                            comp3obj[src][symbol].push(dest);
+                        }
 
-                        cell.innerText="";
-                        var curcontentarr=curcontent.split(' , ');
-                        curcontentarr.sort();
-                        curcontent=curcontentarr.join(' , ');
-                        cell.innerText=curcontent;
+                        comp3obj[src][symbol].sort(); ///keeping the values in sorted order
                     }
                 }
+
+                ///building the final object
+                obj['comp1']=comp1arr;
+                obj['comp2']=comp2arr;
+                obj['comp3']=comp3obj;
+                obj['comp4']=comp4string;
+                obj['comp5']=comp5arr;
             }
             else{
-                if(startstatecount>1) window.alert("Invalid state diagram. More than 1 start state exists ... ...");
-                else if(startstatecount==0) window.alert("No Start state defined ... ...");
+                if(startstatecount>1) obj.errors.push('Invalid state diagram. More than 1 start states!!!!');
+                else if(startstatecount==0) obj.errors.push('Invalid state diagram. No Start state defined!!!!');
             }
         }
         else{
+            obj.errors.push('Empty state diagram.');
+        }
+
+        ///finally returning the obj object
+        console.log(obj);
+        return obj;
+    }
+
+    ///------------------------------showing transition table on request--------------------
+    document.getElementById('showtrtable').addEventListener('click',showtransitiontable);
+    function showtransitiontable(e){
+        console.log('showing transtion table');
+        console.log(e);
+
+        var stateobj=buildobj();
+        if(stateobj.errors.length==0){
+            var tablestring="";
+            tablestring+="<table class='table table-striped'>";
+                ///writing table heading section
+                tablestring+="<thead><tr>";
+                    tablestring+="<th></th>"; ///adding first empty column
+                    for(var ind in stateobj['comp2']){
+                        var cursymbol=stateobj['comp2'][ind];
+                        tablestring+="<th>"+cursymbol+"</th>"; ///adding 1 column per alhapbet symbol
+                    }
+                tablestring+="</tr></thead>";
+
+                ///creating table body layout
+                tablestring+="<tbody>";
+                    ///adding rows for each state
+                    for(var ind in stateobj['comp1']){
+                        tablestring+="<tr>";
+                        var curstateid=stateobj['comp1'][ind];
+
+                            tablestring+="<th><b><code>"+s.graph.getNodeLabel(curstateid)+"</b></code></th>";
+                            for(var ind1 in stateobj['comp2']){
+                                tablestring+="<td>{ ";
+                                var cursymbol=stateobj['comp2'][ind1];
+                                console.log(curstateid+" "+cursymbol);
+                                    ///transition table may or may not have entry for this state and symbol
+                                    ///let's check
+                                    var statekeys=Object.keys(stateobj['comp3']);
+                                    if(statekeys.indexOf(curstateid)!=-1){
+                                        var content=stateobj['comp3'][curstateid];
+                                        ///this state may not have values for each symbol
+                                        var symbolkeys=Object.keys(content);
+                                        if(symbolkeys.indexOf(cursymbol)!=-1){
+                                            var finalcontent=content[cursymbol];
+                                            console.log(finalcontent);
+                                            var contentstring=finalcontent.map(s.graph.getNodeLabel).join(',');
+                                            console.log(contentstring);
+                                            tablestring+=contentstring;
+                                        }
+                                        else{
+                                            ///no entry exists for this symbol
+                                            tablestring+="";
+                                        }
+
+                                    }
+                                    else{
+                                        ///no transitions for this state
+                                        tablestring+="";
+                                    }
+
+                                tablestring+=" }</td>";
+                            }
+
+                        tablestring+="</tr>";
+                    }
+                tablestring+="</tbody>";
+
+            tablestring+="</table>";
+            document.getElementById('tablecontainer').innerHTML=tablestring;
+
+            ///hiding the collapsible pane section
+            $('.collapse').collapse('toggle');
+        }
+        else{
+            console.log(stateobj['errors']);
+            ///hiding the collapsible pane section
+            $('.collapse').collapse('hide');
             window.alert("Invalid State Diagram.");
         }
     }
 
+    ///--------------------formal definition generation----------------------------
+    document.getElementById('generatebtn').addEventListener('click',generateformaldef);
+    function generateformaldef(e){
+        var stateobj=buildobj();
+        if(stateobj.errors.length==0){
+            document.getElementById('comp1').innerText=stateobj['comp1'].map(s.graph.getNodeLabel).join(',');
+            document.getElementById('comp2').innerText=stateobj['comp2'].filter((item, i, ar) => (item==String.fromCharCode(949)) ? false : true).join(',');
+            document.getElementById('comp4').innerText=s.graph.getNodeLabel(stateobj['comp4']);
+            document.getElementById('comp5').innerText=stateobj['comp5'].map(s.graph.getNodeLabel).join(',');
+        }
+        else{
+            console.log(stateobj['errors']);
+            window.alert("Invalid State Diagram.");
+        }
+    }
+
+    ///-------------------input simulation string-----------------------------------------------------------
+    document.getElementById('simulatebtn').addEventListener('click', simulatemodal);
+    function simulatemodal(e){
+        console.log('input simulation clicked');
+        console.log(e);
+
+        var stateobj=buildobj();
+        if(stateobj['errors'].length==0){
+            ///valid graph
+
+
+        }
+        else{
+            console.log(stateobj['errors']);
+            window.alert("Invalid State Diagram.");
+        }
+    }
 })();
