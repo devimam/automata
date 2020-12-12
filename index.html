@@ -110,7 +110,7 @@
 
                 <!-- right side: the formal definition part of the graph -->
                 <div class="col-lg-4" id="rightside">
-                    <table class="table table-hover" id="formaldef">
+                    <table class="table table-hover shadoweffect" id="formaldef">
                         <thead>
                             <tr>
                                 <th scope="colgroup" colspan="2">
@@ -141,14 +141,16 @@
                             <tr>
                                 <td>
                                     Transition Function, <b><code>&delta;</code></b>
-                                    <br/>
+                                </td>
+                                <td>
                                     For DFA, <b><code>&delta; : Q x &Sigma; &rightarrow; Q</code></b>
                                     <br/>
                                     For NFA, <b><code>&delta; : Q x &Sigma;<sub>&epsilon;</sub> &rightarrow; P(Q)</code>
-                                </td>
-                                <td>
-                                    Transition Table:<br/>
-                                    <div id="comp3"></div>
+                                    <br/>
+                                    <br/>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id='showtrtable'>
+                                        Show Transition Table
+                                    </button>
                                 </td>
                             </tr>
                             <tr>
@@ -165,7 +167,27 @@
                             </tr>
                         </tbody>
                     </table>
-                    <!--footer-->
+
+                    <div class="collapse" id="collapsesection">
+                      <div class="shadoweffect card card-body" id="tablecontainer">
+                          <!-- transition table code here -->
+                      </div>
+                    </div>
+
+                    <div id="simulate" class="card card-body shadoweffect">
+                        <form>
+                        <div class="form-row">
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="inputstring" placeholder="Enter sample string to simulate">
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" id="simulatebtn" class="btn" style="width:100%;"><i class="fas fa-magic"></i> Simulate</button>
+                            </div>
+                        </div>
+                        </form>
+                    </div>
+
+                    <!--footer: will show on screen<lg size-->
                     <div class="copyright-sm d-block d-lg-none">
                         MIT License &copy; 2020 <strong>Mohammad Imam Hossain</strong> | Email: <strong><a href="mailto:imambuet11@gmail.com" style="color:inherit;">imambuet11@gmail.com</a></strong> | All Rights Reserved
                     </div>
