@@ -1,630 +1,343 @@
-/*
-Title: Automata(DFA, NFA) Simulator
-Author: Mohammad Imam Hossain
-Date: 12/12/2020
-All rights reserved.
-*/
-
-(function(){
-    /// variable initialization
-    var states=0;
-    var transitions=0;
-
-    ///color settings
-    var stateColor='#ffc299';
-    var borderandtextColor="#ff6600";
-    var labelbgColor='#fff0e6';
-    var stateSize=20;
-
-    ///initializing the sigma graph
-    var myGraph=new sigma.classes.graph();
-    myGraph.read({
-        nodes:[],
-        edges:[]
-    });
-
-    ///initilizing sigma with default renderer
-    var s=new sigma({
-        id: 'sigmaapp',
-        renderers: [
-            {
-                container: document.getElementById('graph-container'),
-                type: 'canvas',
-            }
-        ],
-        graph: myGraph,
-        settings:{
-            autoRescale: false,
-            doubleClickEnabled: false,
-            enableCamera: false, /// disabling the camera so that co-ordinate system remains stable
-            enableEdgeHovering: true, ///the edges can be hovered to display special rendering adn detial text
-            edgeHoverExtremities: true,
-
-            defaultLabelColor: borderandtextColor, // to change the label color
-            defaultLabelSize: 24, // to change the label size
-            defaultLabelHoverColor: borderandtextColor, // the default text color of hovered labels
-            defaultHoverLabelBGColor: labelbgColor, // default background color of hovered nodes labels
-
-            defaultNodeColor: stateColor, // to change the node color
-            borderSize: 2, // the size of the border of hovered nodes
-            defaultNodeBorderColor: 'transparent',
-
-            defaultEdgeColor: borderandtextColor,
-            edgeColor: 'default',
-            maxEdgeSize: 4,
-            defaultEdgeHoverColor: '#803300',
-            edgeHoverColor: 'default',
-
-            defaultEdgeLabelColor: borderandtextColor,
-            defaultEdgeLabelSize: 20,
-        }
-    });
-
-    ///-------------------------------state creation-----------------------------------
-    /// creating new node on a single click in the stage area
-    s.bind('clickStage', createnewstate);
-    function createnewstate(e){
-        console.log('creating new node ... ...');
-        console.log(e);
-
-        ///click position
-        var clickx=e.data.captor.x;
-        var clicky=e.data.captor.y;
-
-        /// creating the new state
-        var stateid='q'+states;
-
-        s.graph.addNode({
-            id: stateid,
-            label: stateid, ///initially id and label both are same
-            x: clickx,
-            y: clicky,
-            size: stateSize,
-            type: 'def'
-        });
-
-        console.log('new node created');
-        console.log(s.graph.nodes());
-        ++states; /// incrementing nodes count
-        s.refresh(); /// refreshing the canvas
-    }
-
-    /// updating the node label or, node deletion
-    s.bind('rightClickNode', showmodal);
-    function showmodal(e){
-        console.log('node clicked for update or deletion');
-        console.log(e);
-
-        var nodeid=e.data.node.id;
-        document.getElementById('nodeid').value=nodeid;
-        document.getElementById('statename').value=e.data.node.label;
-
-        var statetype=e.data.node.type;
-        if(statetype=='bothstate' || statetype=='startstate') document.getElementById('start-state').checked=true;
-        if(statetype=='bothstate' || statetype=='finalstate') document.getElementById('final-state').checked=true;
-
-        ///showing the modal
-        $('#statemodal').modal('show');
-    }
-
-    /// updating the node when update button is clicked from the modal
-    document.getElementById('updatestate').addEventListener('click',updatestate);
-    function updatestate(e){
-        console.log('state update event');
-        console.log(e);
-
-        /// receiving state type
-        var isstart=document.getElementById('start-state').checked;
-        var isfinal=document.getElementById('final-state').checked;
-        console.log(isstart+" , "+isfinal);
-
-        var statetype='def'; /// initializing with default state
-        if(isstart && isfinal){
-            statetype='bothstate';
-        }
-        else if(isstart && !isfinal){
-            statetype='startstate';
-        }
-        else if(!isstart && isfinal){
-            statetype='finalstate';
-        }
-
-        /// receiving state label
-        var newstatelabel=document.getElementById('statename').value;
-        var nodeid=document.getElementById('nodeid').value;
-
-        ///updating state properties
-        var allnodes=s.graph.nodes();
-        for(var ind in allnodes){
-            var tmpstate=allnodes[ind];
-            if(tmpstate.id==nodeid){
-                tmpstate.label=newstatelabel;
-                tmpstate.type=statetype;
-            }
-        }
-
-        console.log('update successfull');
-        console.log(s.graph.nodes());
-        s.refresh();
-
-        ///resetting the modal
-        resetmodal();
-    }
-
-    /// deleting the state when delete button is clicked within the modal
-    document.getElementById('deletestate').addEventListener('click',deletestate);
-    function deletestate(e){
-        console.log('state delete event');
-        console.log(e);
-
-        var nodeid=document.getElementById('nodeid').value;
-
-        s.graph.dropNode(nodeid);
-        console.log('state deletion successful');
-        console.log(s.graph.nodes());
-        s.refresh();
-
-        ///resetting the modal
-        resetmodal();
-    }
-
-    function resetmodal(){
-        /// resetting all the modal fields
-        document.getElementById('start-state').checked=false;
-        document.getElementById('final-state').checked=false;
-        document.getElementById('statename').value="";
-    }
-
-    ///rendering start state
-    sigma.canvas.nodes.startstate=function(node, context, settings){
-        var prefix=settings('prefix') || '';
-        var size=node[prefix+'size'];
-
-        context.fillStyle=node.color||settings('defaultNodeColor');
-        context.strokeStyle=borderandtextColor;
-        context.lineWidth=2;
-
-        context.beginPath();
-        context.moveTo(node[prefix+'x']-size*3,node[prefix+'y']);
-        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
-        context.stroke();
-
-        context.moveTo(node[prefix+'x']-size-8,node[prefix+'y']-8);
-        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
-        context.stroke();
-
-        context.moveTo(node[prefix+'x']-size-8,node[prefix+'y']+8);
-        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
-        context.stroke();
-
-        context.moveTo(node[prefix+'x'],node[prefix+'y']);
-        context.arc(
-            node[prefix+'x'],
-            node[prefix+'y'],
-            size,
-            0,
-            Math.PI*2
-        );
-        context.closePath();
-        context.fill();
-    };
-
-    ///rendering final state
-    sigma.canvas.nodes.finalstate=function(node, context, settings){
-        var prefix=settings('prefix') || '';
-        var size=node[prefix+'size'];
-
-        context.fillStyle=node.color||settings('defaultNodeColor');
-        context.strokeStyle=borderandtextColor;
-        context.lineWidth=2;
-
-        context.beginPath();
-        context.arc(
-            node[prefix+'x'],
-            node[prefix+'y'],
-            size-3.5,
-            0,
-            Math.PI*2
-        );
-        context.stroke();
-        context.fill();
-
-        // context.beginPath();
-        // context.arc(
-        //     node[prefix+'x'],
-        //     node[prefix+'y'],
-        //     size-4,
-        //     0,
-        //     Math.PI*2
-        // );
-        // context.stroke();
-
-        /// outer circle
-        context.beginPath();
-        context.arc(
-            node[prefix+'x'],
-            node[prefix+'y'],
-            size,
-            0,
-            Math.PI*2
-        );
-        context.stroke();
-    };
-
-    ///rendering both state
-    sigma.canvas.nodes.bothstate=function(node, context, settings){
-        var prefix=settings('prefix') || '';
-        var size=node[prefix+'size'];
-
-        context.fillStyle=node.color||settings('defaultNodeColor');
-        context.strokeStyle=borderandtextColor;
-        context.lineWidth=2;
-
-        context.beginPath();
-        context.moveTo(node[prefix+'x']-size*3,node[prefix+'y']);
-        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
-        context.stroke();
-
-        context.moveTo(node[prefix+'x']-size-8,node[prefix+'y']-8);
-        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
-        context.stroke();
-
-        context.moveTo(node[prefix+'x']-size-8,node[prefix+'y']+8);
-        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
-        context.stroke();
-
-        context.beginPath();
-        context.arc(
-            node[prefix+'x'],
-            node[prefix+'y'],
-            size-3.5,
-            0,
-            Math.PI*2
-        );
-        context.stroke();
-        context.fill();
-
-        /// outer circle
-        context.beginPath();
-        context.arc(
-            node[prefix+'x'],
-            node[prefix+'y'],
-            size,
-            0,
-            Math.PI*2
-        );
-        context.stroke();
-    };
-
-    ///------------------------------------edge creation-------------------------------
-
-    /// edge creating operation
-    var clickcounter=0;
-    var prevnodeid=-1;
-    s.bind('doubleClickNode',function(e){
-        console.log('node selected');
-        console.log(event);
-
-        var nodeid=e.data.node.id;
-
-        ++clickcounter;
-        if(clickcounter==1){
-            prevnodeid=nodeid;
-            ///updating state properties
-            var allnodes=s.graph.nodes();
-            for(var ind in allnodes){
-                var tmpstate=allnodes[ind];
-                if(tmpstate.id==nodeid){
-                    tmpstate.color='#b34700';
-                }
-            }
-            s.refresh();
-        }
-        else if(clickcounter==2){
-
-            ///reverseedge check
-            var isreverse=false;
-            var alledges=s.graph.edges();
-            for(var ind in alledges){
-                var tmpedge=alledges[ind];
-                if(tmpedge.source==nodeid && tmpedge.target==prevnodeid){
-                    tmpedge.type="curvedArrow";
-                    isreverse=true;
-                    break;
-                }
-            }
-
-            ///adding new edge
-            var edgeid='t'+transitions;
-            var edgelabel=String.fromCharCode(949);
-            var edgetype='arrow';
-            if(prevnodeid==nodeid || isreverse==true){
-                edgetype='curvedArrow';
-            }
-
-
-            s.graph.addEdge({
-                id: edgeid,
-                label: edgelabel,
-                source: prevnodeid,
-                target: nodeid,
-                size: 3,
-                type: edgetype
-            });
-            ++transitions; ///increment 1 transitions
-
-            ///setting previous state color to source state
-            var allnodes=s.graph.nodes();
-            for(var ind in allnodes){
-                var tmpstate=allnodes[ind];
-                if(tmpstate.id==prevnodeid){
-                    tmpstate.color=stateColor;
-                }
-            }
-
-            s.refresh();
-            console.log('New edge added ... ...');
-
-            clickcounter=0; /// returning back to initial position
-            prevnodeid=-1; /// returning back to initial previous node id
-        }
-    });
-
-    /// edge edit or delete operation
-    s.bind('rightClickEdge', showedgemodal);
-    function showedgemodal(e){
-        console.log('edge clicked for update or delete');
-        console.log(e);
-
-        var edgeid=e.data.edge.id;
-        document.getElementById('edgeid').value=edgeid;
-
-        document.getElementById('edgelabel').value=e.data.edge.label;
-
-        ///showing the modal
-        $('#edgemodal').modal('show');
-    }
-
-    ///epsilon generator
-    document.getElementById('edgelabel').addEventListener('keyup', printepsilon);
-    function printepsilon(e){
-        var curval=e.target.value;
-        var newcurval=curval.replace(/<ep>/g, String.fromCharCode(949));
-        e.target.value=newcurval;
-    }
-
-    /// updating the transition label when update button is clicked
-    document.getElementById('updateedge').addEventListener('click', updateedgelabel);
-    function updateedgelabel(e){
-        console.log('update edge button clicked');
-        console.log(e);
-
-        var newedgelabel=document.getElementById('edgelabel').value;
-        if(newedgelabel==''){
-            newedgelabel=String.fromCharCode(949); ///for empty label, default label = epsilon
-        }
-
-        var edgeid=document.getElementById('edgeid').value;
-        var alledges=s.graph.edges();
-        for(var ind in alledges){
-            var tmpedge=alledges[ind];
-            if(tmpedge.id==edgeid){
-                tmpedge.label=newedgelabel;
-                break;
-            }
-        }
-
-        s.refresh();
-        console.log('transition label updated');
-        ///resetting the modal fields
-        resetedgemodal();
-    }
-
-    function resetedgemodal(){
-        document.getElementById('edgeid').value="";
-        document.getElementById('edgelabel').value="";
-    }
-
-    /// deleting teh transition edge when delete button is clicked
-    document.getElementById('deleteedge').addEventListener('click',deleteedge);
-    function deleteedge(e){
-        console.log('delete edge clicked');
-        console.log(e);
-
-        s.refresh(); // first refreshing otherwise an error occurs
-
-        ///deletion operation
-        var edgeid=document.getElementById('edgeid').value;
-
-        try{
-            ///dropping edges now
-            console.log(s.graph.edges());
-            s.graph.dropEdge(edgeid);
-            console.log(s.graph.edges());
-
-            s.refresh();
-            console.log('edge deletion successful.');
-        }
-        catch(err){
-            console.log('edge deletion error');
-        }
-
-        resetedgemodal();
-    }
-
-    ///---------------------------------dragging nodes--------------------------------
-
-    // Initialize the dragNodes plugin:
-    var dragListener = sigma.plugins.dragNodes(s, s.renderers[0]);
-
-    dragListener.bind('startdrag', function(event) {
-      console.log(event);
-    });
-    dragListener.bind('drag', function(event) {
-      console.log(event);
-    });
-    dragListener.bind('drop', function(event) {
-      console.log(event);
-    });
-    dragListener.bind('dragend', function(event) {
-      console.log(event);
-    });
-
-    ///--------------------formal definition generation----------------------------
-    document.getElementById('generatebtn').addEventListener('click',generateformaldef);
-    function generateformaldef(e){
-        var basicgraph=s.graph;
-        console.log(basicgraph);
-
-        var allstates=s.graph.nodes();
-        var alltransitions=s.graph.edges();
-
-        if(allstates.length>0){
-            var startstatecount=0;
-
-            ///showing component 1,4,5
-            var comp1arr=[];
-            var comp4string="";
-            var comp5arr=[];
-            for(var ind in allstates){
-                var tmpstate=allstates[ind];
-                comp1arr.push(tmpstate.label);
-
-                ///testing start state
-                if(tmpstate.type=='startstate' || tmpstate.type=='bothstate'){
-                    comp4string=tmpstate.label;
-                    startstatecount++;
-                }
-
-                ///testing final state
-                if(tmpstate.type=='finalstate'  || tmpstate.type=='bothstate'){
-                    comp5arr.push(tmpstate.label);
-                }
-            }
-
-            if(startstatecount==1){
-                document.getElementById('comp1').innerText=comp1arr.join(' , ');
-                document.getElementById('comp4').innerText=comp4string;
-                document.getElementById('comp5').innerText=comp5arr.join(' , ');;
-
-                ///showing components 2,3
-                var comp2arr=[];
-                for(var ind in alltransitions){
-                    var tmpedge=alltransitions[ind];
-
-                    var edgelabel=tmpedge.label;
-                    var tmparr=edgelabel.split(','); ///splitting all indivisual alphabets
-
-                    comp2arr=comp2arr.concat(tmparr);
-                }
-
-                ///comp2arr contains repeated alphabets
-                ///finding out unique components
-                var uniquearr = comp2arr.filter((item, i, ar) => ar.indexOf(item) === i);
-                ///removing epsilon and any empty characters
-                var uniquearr1 = uniquearr.filter((item,i,ar) => (item==String.fromCharCode(949) || item=="") ? false : true);
-                ///sorting the alphabet set
-                uniquearr1.sort();
-                var comp2string=uniquearr1.join(' , ');
-                console.log(comp2string);
-                document.getElementById('comp2').innerText=comp2string;
-
-                ///generating transition table here
-                var norows=allstates.length;
-                var nocols=uniquearr1.length;
-                var isepsilon=false;
-                console.log(norows+" "+nocols);
-
-                var tablestring="";
-                tablestring+="<table class='table table-striped'>";
-                    ///writing table heading section
-                    tablestring+="<thead><tr>";
-                        ///adding first empty column
-                        tablestring+="<th></th>";
-                        ///adding 1 column per alhapbet symbol
-                        for(var ind in uniquearr1){
-                            tablestring+="<th>"+uniquearr1[ind]+"</th>";
-                        }
-                        ///creating epsilon column if needed
-                        ///remember: uniquearr1 contains no epsilon and empty string
-                        ///so we need uniquearr variable only
-                        if(uniquearr.indexOf(String.fromCharCode(949))!=-1){
-                            isepsilon=true;
-                            tablestring+="<th>"+String.fromCharCode(949)+"</th>";
-                        }
-                    tablestring+="</tr></thead>";
-
-                    ///writing table body section
-                    tablestring+="<tbody>";
-                        ///adding rows for each state
-                        for(var ind in allstates){
-                            var tmpstid=allstates[ind].id;
-                            tablestring+="<tr>";
-                                tablestring+="<th>"+comp1arr[ind]+"</th>";
-                                for(var i=0;i<nocols;i++){
-                                    tablestring+="<td>{ <span id='cell_"+tmpstid+"_"+uniquearr1[i]+"'></span> }</td>";
-                                }
-                                if(isepsilon==true){
-                                    var curcellid="cell_"+tmpstid;
-                                    tablestring+="<td>{ <span id='"+curcellid+"'></span> }</td>";
-                                }
-                            tablestring+="</tr>";
-                        }
-                    tablestring+="</tbody>";
-
-                tablestring+="</table>";
-                console.log(tablestring);
-                document.getElementById('comp3').innerHTML=tablestring;
-
-                ///traversing all the edges
-                for(var ind in alltransitions){
-                    var tmpedge=alltransitions[ind];
-                    var tmplabel=tmpedge.label;
-                    var src=tmpedge.source;  ///this returns only node id
-                    var srclabel=src;
-                    var dest=tmpedge.target; /// this returns only node id
-                    var destlabel=dest;
-                    for(var ind1 in allstates){
-                        var tmp1state=allstates[ind1];
-                        if(tmp1state.id==dest){
-                            destlabel=tmp1state.label;
-                            break;
-                        }
-                    }
-
-                    console.log(tmplabel+" "+src+" "+dest);
-
-                    var chars=tmplabel.split(',');
-                    console.log(chars);
-                    for(var ind1 in chars){
-                        ///generating html table cell id to edit
-                        var cellid="cell_"+src;
-
-                        var tmpsymbol=chars[ind1];
-                        if(tmpsymbol!=String.fromCharCode(949)) cellid+="_"+tmpsymbol;
-
-                        var cell=document.getElementById(cellid);
-                        console.log(cellid);
-                        console.log(cell);
-                        var curcontent=cell.innerText;
-                        if(curcontent=="") curcontent+=destlabel;
-                        else curcontent+=" , "+destlabel;
-
-                        cell.innerText="";
-                        var curcontentarr=curcontent.split(' , ');
-                        curcontentarr.sort();
-                        curcontent=curcontentarr.join(' , ');
-                        cell.innerText=curcontent;
-                    }
-                }
-            }
-            else{
-                if(startstatecount>1) window.alert("Invalid state diagram. More than 1 start state exists ... ...");
-                else if(startstatecount==0) window.alert("No Start state defined ... ...");
-            }
-        }
-        else{
-            window.alert("Invalid State Diagram.");
-        }
-    }
-})();
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="author" content="Mohammad Imam Hossain">
+        <meta name="keywords" content="finite automata, dfa, nfa, nfa to dfa, dfa to re, regular language">
+        <meta name="description" content="A website to design DFA, NFA, RE; to simulate DFA, NFA, RE; to convert NFA to DFA, DFA to RE, RE to NFA">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- title section -->
+        <title>Regular Language</title>
+
+        <!-- Integration Bootstrap CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+
+        <!-- Integrating sigma.js Module -->
+        <!-- START SIGMA IMPORTS -->
+        <script src="sigmajs/src/sigma.core.js"></script>
+        <script src="sigmajs/src/conrad.js"></script>
+        <script src="sigmajs/src/utils/sigma.utils.js"></script>
+        <script src="sigmajs/src/utils/sigma.polyfills.js"></script>
+        <script src="sigmajs/src/sigma.settings.js"></script>
+        <script src="sigmajs/src/classes/sigma.classes.dispatcher.js"></script>
+        <script src="sigmajs/src/classes/sigma.classes.configurable.js"></script>
+        <script src="sigmajs/src/classes/sigma.classes.graph.js"></script>
+        <script src="sigmajs/src/classes/sigma.classes.camera.js"></script>
+        <script src="sigmajs/src/classes/sigma.classes.quad.js"></script>
+        <script src="sigmajs/src/classes/sigma.classes.edgequad.js"></script>
+        <script src="sigmajs/src/captors/sigma.captors.mouse.js"></script>
+        <script src="sigmajs/src/captors/sigma.captors.touch.js"></script>
+        <script src="sigmajs/src/renderers/sigma.renderers.canvas.js"></script>
+        <script src="sigmajs/src/renderers/sigma.renderers.webgl.js"></script>
+        <script src="sigmajs/src/renderers/sigma.renderers.svg.js"></script>
+        <script src="sigmajs/src/renderers/sigma.renderers.def.js"></script>
+        <script src="sigmajs/src/renderers/webgl/sigma.webgl.nodes.def.js"></script>
+        <script src="sigmajs/src/renderers/webgl/sigma.webgl.nodes.fast.js"></script>
+        <script src="sigmajs/src/renderers/webgl/sigma.webgl.edges.def.js"></script>
+        <script src="sigmajs/src/renderers/webgl/sigma.webgl.edges.fast.js"></script>
+        <script src="sigmajs/src/renderers/webgl/sigma.webgl.edges.arrow.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.labels.def.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.hovers.def.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.nodes.def.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edges.def.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edges.curve.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edges.arrow.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edges.curvedArrow.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edgehovers.def.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edgehovers.curve.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edgehovers.arrow.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edgehovers.curvedArrow.js"></script>
+        <script src="sigmajs/src/renderers/canvas/sigma.canvas.extremities.def.js"></script>
+        <script src="sigmajs/src/renderers/svg/sigma.svg.utils.js"></script>
+        <script src="sigmajs/src/renderers/svg/sigma.svg.nodes.def.js"></script>
+        <script src="sigmajs/src/renderers/svg/sigma.svg.edges.def.js"></script>
+        <script src="sigmajs/src/renderers/svg/sigma.svg.edges.curve.js"></script>
+        <script src="sigmajs/src/renderers/svg/sigma.svg.labels.def.js"></script>
+        <script src="sigmajs/src/renderers/svg/sigma.svg.hovers.def.js"></script>
+        <script src="sigmajs/src/middlewares/sigma.middlewares.rescale.js"></script>
+        <script src="sigmajs/src/middlewares/sigma.middlewares.copy.js"></script>
+        <script src="sigmajs/src/misc/sigma.misc.animation.js"></script>
+        <script src="sigmajs/src/misc/sigma.misc.bindEvents.js"></script>
+        <script src="sigmajs/src/misc/sigma.misc.bindDOMEvents.js"></script>
+        <script src="sigmajs/src/misc/sigma.misc.drawHovers.js"></script>
+        <!-- END SIGMA IMPORTS -->
+
+        <!-- sigma js plugin for dragging nodes -->
+        <script src="sigmajs/plugins/sigma.plugins.dragNodes/sigma.plugins.dragNodes.js"></script>
+
+        <!-- sigma js plugin for different types of edges -->
+        <script src="sigmajs/plugins/sigma.renderers.edgeLabels/settings.js"></script>
+        <script src="sigmajs/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.def.js"></script>
+        <script src="sigmajs/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.curve.js"></script>
+        <script src="sigmajs/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.curvedArrow.js"></script>
+
+        <!-- adding font awesome icons -->
+        <link href="fontawesome-free-5.15.1-web/css/all.css" rel="stylesheet"></link>
+
+        <!-- adding my own styles -->
+        <link href="css/mystyle.css" rel="stylesheet">
+        <link rel="icon" href="images/logo.png">
+    </head>
+
+    <body oncontextmenu="return false;">
+    <!-- oncontextmenu event is hiding browser default right click options -->
+
+        <div class="container-fluid" id="mainbody">
+            <div class="row">
+                <!-- left side: the container of the graph -->
+                <div class="col-lg-8" id="mycontainer">
+                    <h1 class="myheading">
+                        <div style="display:inline;">Finite Automata Simulator</div>
+                        <div style="float:right;display:inline">
+                            <a href="#" title="Simulator use instructions" style="color:inherit;text-decoration:none;" data-toggle="modal" data-target="#helpmodal">
+                                <img src="images/helpicon.gif" alt="instructions" style="width:40px;height:40px;">
+							</a>
+
+                            <iframe src="https://ghbtns.com/github-btn.html?user=devimam&repo=automata&type=star&count=true&size=large"
+							frameborder="0" scrolling="0" width="110" height="30" title="Star this project"></iframe>
+                        </div>
+                    </h1>
+                    <!-- sigmajs drawing section -->
+                    <div id="graph-container" title="Draw Here"></div>
+
+                    <!--footer-->
+                    <div class="copyright-lg d-none d-lg-block">
+                        MIT License &copy; 2020 <strong>Mohammad Imam Hossain</strong> | Email: <strong><a href="mailto:imambuet11@gmail.com" style="color:inherit;">imambuet11@gmail.com</a></strong> | All Rights Reserved
+                    </div>
+                </div>
+
+                <!-- right side: the formal definition part of the graph -->
+                <div class="col-lg-4" id="rightside">
+                    <table class="table table-hover" id="formaldef">
+                        <thead>
+                            <tr>
+                                <th scope="colgroup" colspan="2">
+                                    <h4>
+                                        Formal Definition
+                                        <button class='btn btn-sm' id="generatebtn" style="float:right;">
+                                            <i class="fas fa-play" aria-hidden="true"></i>
+                                            Generate
+                                        </button>
+                                    <h4>
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>States, <b><code>Q</code></b></td>
+                                <td>
+                                    <b><code>{ <span id='comp1'></span> }</code></b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Alphabet, <b><code>&Sigma;</code></b></td>
+                                <td>
+                                    <b><code>{ <span id='comp2'></span> }</code></b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Transition Function, <b><code>&delta;</code></b>
+                                    <br/>
+                                    For DFA, <b><code>&delta; : Q x &Sigma; &rightarrow; Q</code></b>
+                                    <br/>
+                                    For NFA, <b><code>&delta; : Q x &Sigma;<sub>&epsilon;</sub> &rightarrow; P(Q)</code>
+                                </td>
+                                <td>
+                                    Transition Table:<br/>
+                                    <div id="comp3"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Start State, <b><code>q<sub>0</sub> &Element; Q </code><b></td>
+                                <td>
+                                    <b><code><span id='comp4'></span></code></b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Final States, <b><code>F &SubsetEqual; Q</code><b></td>
+                                <td>
+                                    <b><code>{ <span id='comp5'></span> }</code></b>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!--footer-->
+                    <div class="copyright-sm d-block d-lg-none">
+                        MIT License &copy; 2020 <strong>Mohammad Imam Hossain</strong> | Email: <strong><a href="mailto:imambuet11@gmail.com" style="color:inherit;">imambuet11@gmail.com</a></strong> | All Rights Reserved
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- modal for state labeling and deletion -->
+            <!-- Modal -->
+            <div class="modal fade" id="statemodal" tabindex="-1">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="statemodalLabel">State Configuration</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="statename">State Name:</label>
+                            <input type="text" class="form-control" id="statename" autofocus>
+                            <small id="defaultstname" class="form-text text-muted"></small>
+                        </div>
+                        <div class="form-group form-check-inline">
+                            <input type="checkbox" class="form-check-input" id="start-state" value="start">
+                            <label class="form-check-label" for="start-state">Start State</label>
+                        </div>
+                        <div class="form-group form-check-inline">
+                            <input type="checkbox" class="form-check-input" id="final-state" value="final">
+                            <label class="form-check-label" for="final-state">Final State</label>
+                        </div>
+                        <input type="hidden" id="nodeid">
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id='updatestate' data-dismiss="modal">Update</button>
+                    <button type="button" class="btn btn-danger" id='deletestate' data-dismiss="modal">Delete</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- modal for edge labeling and deletion -->
+            <!-- Modal -->
+            <div class="modal fade" id="edgemodal" tabindex="-1">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="edgemodalLabel">Edge Configuration</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="edgelabel">Edge Label:</label>
+                            <input type="text" class="form-control" id="edgelabel" autofocus placeholder="<ep>,a,b,0,1">
+                            <small id="defaultedgelabel" class="form-text text-muted">Default value: <code>&epsilon;</code><br/>Use <code>&lt;ep&gt;</code> to generate <code>&epsilon;</code></small>
+                        </div>
+                        <input type="hidden" id="edgeid">
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id='updateedge' data-dismiss="modal">Update</button>
+                    <button type="button" class="btn btn-danger" id='deleteedge' data-dismiss="modal">Delete</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- modal for showing how to use guideline -->
+            <!-- Modal -->
+            <div class="modal fade" id="helpmodal" tabindex="-1">
+              <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h3 class="modal-title" id="edgemodalLabel">Simulator Use Instructions</h3>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+
+                      <table class="table table-hover">
+                          <tbody>
+                              <tr>
+                                  <th colspan="2" class="text-center" style="color:#e65c00;">
+                                      States
+                                  </th>
+                              </tr>
+                              <tr>
+                                  <td style="width:40%;">
+                                        <ul>
+                                            <li>To create a new state</li>
+                                        </ul>
+                                  </td>
+                                  <td>
+                                      <kbd>Mouse Left Click</kbd> anywhere on the board.
+                                  </td>
+                              </tr>
+                              <tr>
+                                  <td style="width:40%;">
+                                      <ul>
+                                          <li>To update a state label</li>
+                                          <li>To create a Start state</li>
+                                          <li>To create an Accept state</li>
+                                          <li>To delete an existing state</li>
+                                    </ul>
+                                  </td>
+                                  <td>
+                                      <kbd>Mouse Right Click</kbd> over the state.
+                                  </td>
+                              </tr>
+                              <tr>
+                                  <td style="width:40%;">
+                                      <ul>
+                                          <li>To move a state</li>
+                                    </ul>
+                                  </td>
+                                  <td>
+                                      <kbd>Drag</kbd> the state to move.
+                                  </td>
+                              </tr>
+                              <tr>
+                                  <th colspan="2" class="text-center" style="color:#e65c00;">
+                                      Transitions
+                                  </th>
+                              </tr>
+                              <tr>
+                                  <td style="width:40%;">
+                                      <ul>
+                                          <li>To create an edge</li>
+                                      </ul>
+                                  </td>
+                                  <td>
+                                      <b>Step 1:</b> <kbd>Mouse Double Left Click</kbd> on the source state.<br/>
+                                      <br/>
+                                      <b>Step 2:</b> <kbd>Mouse Double Left Click</kbd> on the destination state.
+                                  </td>
+                              </tr>
+                              <tr>
+                                  <td style="width:40%;">
+                                      <ul>
+                                          <li>To update an edge label</li>
+                                          <li>To delete an edge</li>
+                                    </ul>
+                                  </td>
+                                  <td>
+                                      <kbd>Mouse Right Click</kbd> over the transition edge.
+                                  </td>
+                              </tr>
+                          </tbody>
+                      </table>
+
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div> <!-- end of container-fluid div -->
+        <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- my scripts -->
+        <script src="js/myscript.js"></script>
+    </body>
+</html>
