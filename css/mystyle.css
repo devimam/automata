@@ -59,14 +59,22 @@ div .modal-body{
 #formaldef{
     font-weight: bold;
 	color: black;
+}
+
+.shadoweffect{
     box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2), 0 3px 10px 0 rgba(0,0,0,0.19);
+    margin-top: 10px;
 }
 
 #formaldef code{
     color: #990000;
 }
 
-#generatebtn{
+#tablecontainer code{
+    color: #990000;
+}
+
+#generatebtn, #simulatebtn{
     background-color: #660000;
     color: white;
 }
