@@ -1,365 +1,709 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="author" content="Mohammad Imam Hossain">
-        <meta name="keywords" content="finite automata, dfa, nfa, nfa to dfa, dfa to re, regular language">
-        <meta name="description" content="A website to design DFA, NFA, RE; to simulate DFA, NFA, RE; to convert NFA to DFA, DFA to RE, RE to NFA">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+/*
+Title: Automata(DFA, NFA) Simulator
+Author: Mohammad Imam Hossain
+Date: 12/12/2020
+All rights reserved.
+*/
 
-        <!-- title section -->
-        <title>Regular Language</title>
+(function(){
+    /// variable initialization
+    var states=0;
+    var transitions=0;
 
-        <!-- Integration Bootstrap CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+    ///color settings
+    var stateColor='#ffc299';
+    var borderandtextColor="#ff6600";
+    var labelbgColor='#fff0e6';
+    var stateSize=20;
 
-        <!-- Integrating sigma.js Module -->
-        <!-- START SIGMA IMPORTS -->
-        <script src="sigmajs/src/sigma.core.js"></script>
-        <script src="sigmajs/src/conrad.js"></script>
-        <script src="sigmajs/src/utils/sigma.utils.js"></script>
-        <script src="sigmajs/src/utils/sigma.polyfills.js"></script>
-        <script src="sigmajs/src/sigma.settings.js"></script>
-        <script src="sigmajs/src/classes/sigma.classes.dispatcher.js"></script>
-        <script src="sigmajs/src/classes/sigma.classes.configurable.js"></script>
-        <script src="sigmajs/src/classes/sigma.classes.graph.js"></script>
-        <script src="sigmajs/src/classes/sigma.classes.camera.js"></script>
-        <script src="sigmajs/src/classes/sigma.classes.quad.js"></script>
-        <script src="sigmajs/src/classes/sigma.classes.edgequad.js"></script>
-        <script src="sigmajs/src/captors/sigma.captors.mouse.js"></script>
-        <script src="sigmajs/src/captors/sigma.captors.touch.js"></script>
-        <script src="sigmajs/src/renderers/sigma.renderers.canvas.js"></script>
-        <script src="sigmajs/src/renderers/sigma.renderers.webgl.js"></script>
-        <script src="sigmajs/src/renderers/sigma.renderers.svg.js"></script>
-        <script src="sigmajs/src/renderers/sigma.renderers.def.js"></script>
-        <script src="sigmajs/src/renderers/webgl/sigma.webgl.nodes.def.js"></script>
-        <script src="sigmajs/src/renderers/webgl/sigma.webgl.nodes.fast.js"></script>
-        <script src="sigmajs/src/renderers/webgl/sigma.webgl.edges.def.js"></script>
-        <script src="sigmajs/src/renderers/webgl/sigma.webgl.edges.fast.js"></script>
-        <script src="sigmajs/src/renderers/webgl/sigma.webgl.edges.arrow.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.labels.def.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.hovers.def.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.nodes.def.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edges.def.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edges.curve.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edges.arrow.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edges.curvedArrow.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edgehovers.def.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edgehovers.curve.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edgehovers.arrow.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.edgehovers.curvedArrow.js"></script>
-        <script src="sigmajs/src/renderers/canvas/sigma.canvas.extremities.def.js"></script>
-        <script src="sigmajs/src/renderers/svg/sigma.svg.utils.js"></script>
-        <script src="sigmajs/src/renderers/svg/sigma.svg.nodes.def.js"></script>
-        <script src="sigmajs/src/renderers/svg/sigma.svg.edges.def.js"></script>
-        <script src="sigmajs/src/renderers/svg/sigma.svg.edges.curve.js"></script>
-        <script src="sigmajs/src/renderers/svg/sigma.svg.labels.def.js"></script>
-        <script src="sigmajs/src/renderers/svg/sigma.svg.hovers.def.js"></script>
-        <script src="sigmajs/src/middlewares/sigma.middlewares.rescale.js"></script>
-        <script src="sigmajs/src/middlewares/sigma.middlewares.copy.js"></script>
-        <script src="sigmajs/src/misc/sigma.misc.animation.js"></script>
-        <script src="sigmajs/src/misc/sigma.misc.bindEvents.js"></script>
-        <script src="sigmajs/src/misc/sigma.misc.bindDOMEvents.js"></script>
-        <script src="sigmajs/src/misc/sigma.misc.drawHovers.js"></script>
-        <!-- END SIGMA IMPORTS -->
+    ///------------------------------overwriting sigma functionality--------------------------------
+    ///------------------------------node id to nodel label return funtion------------------------------
+    sigma.classes.graph.addMethod('getNodeLabel', function(nodeid){
+        return this.nodesIndex[nodeid].label;
+    });
 
-        <!-- sigma js plugin for dragging nodes -->
-        <script src="sigmajs/plugins/sigma.plugins.dragNodes/sigma.plugins.dragNodes.js"></script>
+    ///initializing the sigma graph
+    var myGraph=new sigma.classes.graph();
+    myGraph.read({
+        nodes:[],
+        edges:[]
+    });
 
-        <!-- sigma js plugin for different types of edges -->
-        <script src="sigmajs/plugins/sigma.renderers.edgeLabels/settings.js"></script>
-        <script src="sigmajs/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.def.js"></script>
-        <script src="sigmajs/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.curve.js"></script>
-        <script src="sigmajs/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.curvedArrow.js"></script>
+    ///initilizing sigma with default renderer
+    var s=new sigma({
+        id: 'sigmaapp',
+        renderers: [
+            {
+                container: document.getElementById('graph-container'),
+                type: 'canvas',
+            }
+        ],
+        graph: myGraph,
+        settings:{
+            autoRescale: false,
+            doubleClickEnabled: false,
+            enableCamera: false, /// disabling the camera so that co-ordinate system remains stable
+            enableEdgeHovering: true, ///the edges can be hovered to display special rendering adn detial text
+            edgeHoverExtremities: true,
 
-        <!-- adding font awesome icons -->
-        <link href="fontawesome-free-5.15.1-web/css/all.css" rel="stylesheet"></link>
+            defaultLabelColor: borderandtextColor, // to change the label color
+            defaultLabelSize: 24, // to change the label size
+            defaultLabelHoverColor: borderandtextColor, // the default text color of hovered labels
+            defaultHoverLabelBGColor: labelbgColor, // default background color of hovered nodes labels
 
-        <!-- adding my own styles -->
-        <link href="css/mystyle.css" rel="stylesheet">
-        <link rel="icon" href="images/logo.png">
-    </head>
+            defaultNodeColor: stateColor, // to change the node color
+            borderSize: 2, // the size of the border of hovered nodes
+            defaultNodeBorderColor: 'transparent',
 
-    <body oncontextmenu="return false;">
-    <!-- oncontextmenu event is hiding browser default right click options -->
+            defaultEdgeColor: borderandtextColor,
+            edgeColor: 'default',
+            maxEdgeSize: 4,
+            defaultEdgeHoverColor: '#803300',
+            edgeHoverColor: 'default',
 
-        <div class="container-fluid" id="mainbody">
-            <div class="row">
-                <!-- left side: the container of the graph -->
-                <div class="col-lg-8" id="mycontainer">
-                    <h1 class="myheading">
-                        <div style="display:inline;">Finite Automata Simulator</div>
-                        <div style="float:right;display:inline">
-                            <a href="#" title="Simulator use instructions" style="color:inherit;text-decoration:none;" data-toggle="modal" data-target="#helpmodal">
-                                <img src="images/helpicon.gif" alt="instructions" style="width:40px;height:40px;">
-							</a>
+            defaultEdgeLabelColor: borderandtextColor,
+            defaultEdgeLabelSize: 20,
+        }
+    });
 
-                            <iframe src="https://ghbtns.com/github-btn.html?user=devimam&repo=automata&type=star&count=true&size=large"
-							frameborder="0" scrolling="0" width="110" height="30" title="Star this project"></iframe>
-                        </div>
-                    </h1>
-                    <!-- sigmajs drawing section -->
-                    <div id="graph-container" title="Draw Here"></div>
+    ///-------------------------------state creation-----------------------------------
+    /// creating new node on a single click in the stage area
+    s.bind('clickStage', createnewstate);
+    function createnewstate(e){
+        console.log('creating new node ... ...');
+        console.log(e);
 
-                    <!--footer-->
-                    <div class="copyright-lg d-none d-lg-block">
-                        MIT License &copy; 2020 <strong>Mohammad Imam Hossain</strong> | Email: <strong><a href="mailto:imambuet11@gmail.com" style="color:inherit;">imambuet11@gmail.com</a></strong> | All Rights Reserved
-                    </div>
-                </div>
+        ///click position
+        var clickx=e.data.captor.x;
+        var clicky=e.data.captor.y;
 
-                <!-- right side: the formal definition part of the graph -->
-                <div class="col-lg-4" id="rightside">
-                    <table class="table table-hover shadoweffect" id="formaldef">
-                        <thead>
-                            <tr>
-                                <th scope="colgroup" colspan="2">
-                                    <h4>
-                                        Formal Definition
-                                        <button class='btn btn-sm' id="generatebtn" style="float:right;">
-                                            <i class="fas fa-play" aria-hidden="true"></i>
-                                            Generate
-                                        </button>
-                                    <h4>
-                                </th>
-                            </tr>
-                        </thead>
+        /// creating the new state
+        var stateid='q'+states;
 
-                        <tbody>
-                            <tr>
-                                <td>States, <b><code>Q</code></b></td>
-                                <td>
-                                    <b><code>{ <span id='comp1'></span> }</code></b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Alphabet, <b><code>&Sigma;</code></b></td>
-                                <td>
-                                    <b><code>{ <span id='comp2'></span> }</code></b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    Transition Function, <b><code>&delta;</code></b>
-                                </td>
-                                <td>
-                                    For DFA, <b><code>&delta; : Q x &Sigma; &rightarrow; Q</code></b>
-                                    <br/>
-                                    For NFA, <b><code>&delta; : Q x &Sigma;<sub>&epsilon;</sub> &rightarrow; P(Q)</code>
-                                    <br/>
-                                    <br/>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" id='showtrtable'>
-                                        Show Transition Table
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Start State, <b><code>q<sub>0</sub> &Element; Q </code><b></td>
-                                <td>
-                                    <b><code><span id='comp4'></span></code></b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Final States, <b><code>F &SubsetEqual; Q</code><b></td>
-                                <td>
-                                    <b><code>{ <span id='comp5'></span> }</code></b>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+        s.graph.addNode({
+            id: stateid,
+            label: stateid, ///initially id and label both are same
+            x: clickx,
+            y: clicky,
+            size: stateSize,
+            type: 'def'
+        });
 
-                    <div class="collapse" id="collapsesection">
-                      <div class="shadoweffect card card-body" id="tablecontainer">
-                          <!-- transition table code here -->
-                      </div>
-                    </div>
+        console.log('new node created');
+        console.log(s.graph.nodes());
+        ++states; /// incrementing nodes count
+        s.refresh(); /// refreshing the canvas
+    }
 
-                    <div id="simulate" class="card card-body shadoweffect">
-                        <form>
-                        <div class="form-row">
-                            <div class="col-md-9">
-                                <input type="text" class="form-control" id="inputstring" placeholder="Enter sample string to simulate">
-                            </div>
-                            <div class="col-md-3">
-                                <button type="button" id="simulatebtn" class="btn" style="width:100%;"><i class="fas fa-magic"></i> Simulate</button>
-                            </div>
-                        </div>
-                        </form>
-                    </div>
+    /// updating the node label or, node deletion
+    s.bind('rightClickNode', showmodal);
+    function showmodal(e){
+        console.log('node clicked for update or deletion');
+        console.log(e);
 
-                    <!--footer: will show on screen<lg size-->
-                    <div class="copyright-sm d-block d-lg-none">
-                        MIT License &copy; 2020 <strong>Mohammad Imam Hossain</strong> | Email: <strong><a href="mailto:imambuet11@gmail.com" style="color:inherit;">imambuet11@gmail.com</a></strong> | All Rights Reserved
-                    </div>
-                </div>
-            </div>
+        var nodeid=e.data.node.id;
+        document.getElementById('nodeid').value=nodeid;
+        document.getElementById('statename').value=e.data.node.label;
+
+        var statetype=e.data.node.type;
+        if(statetype=='bothstate' || statetype=='startstate') document.getElementById('start-state').checked=true;
+        if(statetype=='bothstate' || statetype=='finalstate') document.getElementById('final-state').checked=true;
+
+        ///showing the modal
+        $('#statemodal').modal('show');
+    }
+
+    /// updating the node when update button is clicked from the modal
+    document.getElementById('updatestate').addEventListener('click',updatestate);
+    function updatestate(e){
+        console.log('state update event');
+        console.log(e);
+
+        /// receiving state type
+        var isstart=document.getElementById('start-state').checked;
+        var isfinal=document.getElementById('final-state').checked;
+        console.log(isstart+" , "+isfinal);
+
+        var statetype='def'; /// initializing with default state
+        if(isstart && isfinal){
+            statetype='bothstate';
+        }
+        else if(isstart && !isfinal){
+            statetype='startstate';
+        }
+        else if(!isstart && isfinal){
+            statetype='finalstate';
+        }
+
+        /// receiving state label
+        var newstatelabel=document.getElementById('statename').value;
+        var nodeid=document.getElementById('nodeid').value;
+
+        ///updating state properties
+        var allnodes=s.graph.nodes();
+        for(var ind in allnodes){
+            var tmpstate=allnodes[ind];
+            if(tmpstate.id==nodeid){
+                tmpstate.label=newstatelabel;
+                tmpstate.type=statetype;
+            }
+        }
+
+        console.log('update successfull');
+        console.log(s.graph.nodes());
+        s.refresh();
+
+        ///resetting the modal
+        resetmodal();
+    }
+
+    /// deleting the state when delete button is clicked within the modal
+    document.getElementById('deletestate').addEventListener('click',deletestate);
+    function deletestate(e){
+        console.log('state delete event');
+        console.log(e);
+
+        var nodeid=document.getElementById('nodeid').value;
+
+        s.graph.dropNode(nodeid);
+        console.log('state deletion successful');
+        console.log(s.graph.nodes());
+        s.refresh();
+
+        ///resetting the modal
+        resetmodal();
+    }
+
+    function resetmodal(){
+        /// resetting all the modal fields
+        document.getElementById('start-state').checked=false;
+        document.getElementById('final-state').checked=false;
+        document.getElementById('statename').value="";
+    }
+
+    ///rendering start state
+    sigma.canvas.nodes.startstate=function(node, context, settings){
+        var prefix=settings('prefix') || '';
+        var size=node[prefix+'size'];
+
+        context.fillStyle=node.color||settings('defaultNodeColor');
+        context.strokeStyle=borderandtextColor;
+        context.lineWidth=2;
+
+        context.beginPath();
+        context.moveTo(node[prefix+'x']-size*3,node[prefix+'y']);
+        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
+        context.stroke();
+
+        context.moveTo(node[prefix+'x']-size-8,node[prefix+'y']-8);
+        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
+        context.stroke();
+
+        context.moveTo(node[prefix+'x']-size-8,node[prefix+'y']+8);
+        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
+        context.stroke();
+
+        context.moveTo(node[prefix+'x'],node[prefix+'y']);
+        context.arc(
+            node[prefix+'x'],
+            node[prefix+'y'],
+            size,
+            0,
+            Math.PI*2
+        );
+        context.closePath();
+        context.fill();
+    };
+
+    ///rendering final state
+    sigma.canvas.nodes.finalstate=function(node, context, settings){
+        var prefix=settings('prefix') || '';
+        var size=node[prefix+'size'];
+
+        context.fillStyle=node.color||settings('defaultNodeColor');
+        context.strokeStyle=borderandtextColor;
+        context.lineWidth=2;
+
+        context.beginPath();
+        context.arc(
+            node[prefix+'x'],
+            node[prefix+'y'],
+            size-3.5,
+            0,
+            Math.PI*2
+        );
+        context.stroke();
+        context.fill();
+
+        // context.beginPath();
+        // context.arc(
+        //     node[prefix+'x'],
+        //     node[prefix+'y'],
+        //     size-4,
+        //     0,
+        //     Math.PI*2
+        // );
+        // context.stroke();
+
+        /// outer circle
+        context.beginPath();
+        context.arc(
+            node[prefix+'x'],
+            node[prefix+'y'],
+            size,
+            0,
+            Math.PI*2
+        );
+        context.stroke();
+    };
+
+    ///rendering both state
+    sigma.canvas.nodes.bothstate=function(node, context, settings){
+        var prefix=settings('prefix') || '';
+        var size=node[prefix+'size'];
+
+        context.fillStyle=node.color||settings('defaultNodeColor');
+        context.strokeStyle=borderandtextColor;
+        context.lineWidth=2;
+
+        context.beginPath();
+        context.moveTo(node[prefix+'x']-size*3,node[prefix+'y']);
+        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
+        context.stroke();
+
+        context.moveTo(node[prefix+'x']-size-8,node[prefix+'y']-8);
+        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
+        context.stroke();
+
+        context.moveTo(node[prefix+'x']-size-8,node[prefix+'y']+8);
+        context.lineTo(node[prefix+'x']-size,node[prefix+'y']);
+        context.stroke();
+
+        context.beginPath();
+        context.arc(
+            node[prefix+'x'],
+            node[prefix+'y'],
+            size-3.5,
+            0,
+            Math.PI*2
+        );
+        context.stroke();
+        context.fill();
+
+        /// outer circle
+        context.beginPath();
+        context.arc(
+            node[prefix+'x'],
+            node[prefix+'y'],
+            size,
+            0,
+            Math.PI*2
+        );
+        context.stroke();
+    };
+
+    ///------------------------------------edge creation-------------------------------
+
+    /// edge creating operation
+    var clickcounter=0;
+    var prevnodeid=-1;
+    s.bind('doubleClickNode',function(e){
+        console.log('node selected');
+        console.log(event);
+
+        var nodeid=e.data.node.id;
+
+        ++clickcounter;
+        if(clickcounter==1){
+            prevnodeid=nodeid;
+            ///updating state properties
+            var allnodes=s.graph.nodes();
+            for(var ind in allnodes){
+                var tmpstate=allnodes[ind];
+                if(tmpstate.id==nodeid){
+                    tmpstate.color='#b34700';
+                }
+            }
+            s.refresh();
+        }
+        else if(clickcounter==2){
+
+            ///reverseedge check
+            var isreverse=false;
+            var alledges=s.graph.edges();
+            for(var ind in alledges){
+                var tmpedge=alledges[ind];
+                if(tmpedge.source==nodeid && tmpedge.target==prevnodeid){
+                    tmpedge.type="curvedArrow";
+                    isreverse=true;
+                    break;
+                }
+            }
+
+            ///adding new edge
+            var edgeid='t'+transitions;
+            var edgelabel=String.fromCharCode(949);
+            var edgetype='arrow';
+            if(prevnodeid==nodeid || isreverse==true){
+                edgetype='curvedArrow';
+            }
 
 
-            <!-- modal for state labeling and deletion -->
-            <!-- Modal -->
-            <div class="modal fade" id="statemodal" tabindex="-1">
-              <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="statemodalLabel">State Configuration</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                  <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="statename">State Name:</label>
-                            <input type="text" class="form-control" id="statename" autofocus>
-                            <small id="defaultstname" class="form-text text-muted"></small>
-                        </div>
-                        <div class="form-group form-check-inline">
-                            <input type="checkbox" class="form-check-input" id="start-state" value="start">
-                            <label class="form-check-label" for="start-state">Start State</label>
-                        </div>
-                        <div class="form-group form-check-inline">
-                            <input type="checkbox" class="form-check-input" id="final-state" value="final">
-                            <label class="form-check-label" for="final-state">Final State</label>
-                        </div>
-                        <input type="hidden" id="nodeid">
-                    </form>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-success" id='updatestate' data-dismiss="modal">Update</button>
-                    <button type="button" class="btn btn-danger" id='deletestate' data-dismiss="modal">Delete</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            s.graph.addEdge({
+                id: edgeid,
+                label: edgelabel,
+                source: prevnodeid,
+                target: nodeid,
+                size: 3,
+                type: edgetype
+            });
+            ++transitions; ///increment 1 transitions
 
-            <!-- modal for edge labeling and deletion -->
-            <!-- Modal -->
-            <div class="modal fade" id="edgemodal" tabindex="-1">
-              <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="edgemodalLabel">Edge Configuration</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                  <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="edgelabel">Edge Label:</label>
-                            <input type="text" class="form-control" id="edgelabel" autofocus placeholder="<ep>,a,b,0,1">
-                            <small id="defaultedgelabel" class="form-text text-muted">Default value: <code>&epsilon;</code><br/>Use <code>&lt;ep&gt;</code> to generate <code>&epsilon;</code></small>
-                        </div>
-                        <input type="hidden" id="edgeid">
-                    </form>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-success" id='updateedge' data-dismiss="modal">Update</button>
-                    <button type="button" class="btn btn-danger" id='deleteedge' data-dismiss="modal">Delete</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ///setting previous state color to source state
+            var allnodes=s.graph.nodes();
+            for(var ind in allnodes){
+                var tmpstate=allnodes[ind];
+                if(tmpstate.id==prevnodeid){
+                    tmpstate.color=stateColor;
+                }
+            }
 
-            <!-- modal for showing how to use guideline -->
-            <!-- Modal -->
-            <div class="modal fade" id="helpmodal" tabindex="-1">
-              <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h3 class="modal-title" id="edgemodalLabel">Simulator Use Instructions</h3>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                  <div class="modal-body">
+            s.refresh();
+            console.log('New edge added ... ...');
 
-                      <table class="table table-hover">
-                          <tbody>
-                              <tr>
-                                  <th colspan="2" class="text-center" style="color:#e65c00;">
-                                      States
-                                  </th>
-                              </tr>
-                              <tr>
-                                  <td style="width:40%;">
-                                        <ul>
-                                            <li>To create a new state</li>
-                                        </ul>
-                                  </td>
-                                  <td>
-                                      <kbd>Mouse Left Click</kbd> anywhere on the board.
-                                  </td>
-                              </tr>
-                              <tr>
-                                  <td style="width:40%;">
-                                      <ul>
-                                          <li>To update a state label</li>
-                                          <li>To create a Start state</li>
-                                          <li>To create an Accept state</li>
-                                          <li>To delete an existing state</li>
-                                    </ul>
-                                  </td>
-                                  <td>
-                                      <kbd>Mouse Right Click</kbd> over the state.
-                                  </td>
-                              </tr>
-                              <tr>
-                                  <td style="width:40%;">
-                                      <ul>
-                                          <li>To move a state</li>
-                                    </ul>
-                                  </td>
-                                  <td>
-                                      <kbd>Drag</kbd> the state to move.
-                                  </td>
-                              </tr>
-                              <tr>
-                                  <th colspan="2" class="text-center" style="color:#e65c00;">
-                                      Transitions
-                                  </th>
-                              </tr>
-                              <tr>
-                                  <td style="width:40%;">
-                                      <ul>
-                                          <li>To create an edge</li>
-                                      </ul>
-                                  </td>
-                                  <td>
-                                      <b>Step 1:</b> <kbd>Mouse Double Left Click</kbd> on the source state.<br/>
-                                      <br/>
-                                      <b>Step 2:</b> <kbd>Mouse Double Left Click</kbd> on the destination state.
-                                  </td>
-                              </tr>
-                              <tr>
-                                  <td style="width:40%;">
-                                      <ul>
-                                          <li>To update an edge label</li>
-                                          <li>To delete an edge</li>
-                                    </ul>
-                                  </td>
-                                  <td>
-                                      <kbd>Mouse Right Click</kbd> over the transition edge.
-                                  </td>
-                              </tr>
-                          </tbody>
-                      </table>
+            clickcounter=0; /// returning back to initial position
+            prevnodeid=-1; /// returning back to initial previous node id
+        }
+    });
 
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-        </div> <!-- end of container-fluid div -->
-        <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+    /// edge edit or delete operation
+    s.bind('rightClickEdge', showedgemodal);
+    function showedgemodal(e){
+        console.log('edge clicked for update or delete');
+        console.log(e);
 
-        <!-- my scripts -->
-        <script src="js/myscript.js"></script>
-    </body>
-</html>
+        var edgeid=e.data.edge.id;
+        document.getElementById('edgeid').value=edgeid;
+
+        document.getElementById('edgelabel').value=e.data.edge.label;
+
+        ///showing the modal
+        $('#edgemodal').modal('show');
+    }
+
+    ///epsilon generator
+    document.getElementById('edgelabel').addEventListener('keyup', printepsilon);
+    function printepsilon(e){
+        var curval=e.target.value;
+        var newcurval=curval.replace(/<ep>/g, String.fromCharCode(949));
+        e.target.value=newcurval;
+    }
+
+    /// updating the transition label when update button is clicked
+    document.getElementById('updateedge').addEventListener('click', updateedgelabel);
+    function updateedgelabel(e){
+        console.log('update edge button clicked');
+        console.log(e);
+
+        var newedgelabel=document.getElementById('edgelabel').value;
+        if(newedgelabel==''){
+            newedgelabel=String.fromCharCode(949); ///for empty label, default label = epsilon
+        }
+
+        var edgeid=document.getElementById('edgeid').value;
+        var alledges=s.graph.edges();
+        for(var ind in alledges){
+            var tmpedge=alledges[ind];
+            if(tmpedge.id==edgeid){
+                tmpedge.label=newedgelabel;
+                break;
+            }
+        }
+
+        s.refresh();
+        console.log('transition label updated');
+        ///resetting the modal fields
+        resetedgemodal();
+    }
+
+    function resetedgemodal(){
+        document.getElementById('edgeid').value="";
+        document.getElementById('edgelabel').value="";
+    }
+
+    /// deleting teh transition edge when delete button is clicked
+    document.getElementById('deleteedge').addEventListener('click',deleteedge);
+    function deleteedge(e){
+        console.log('delete edge clicked');
+        console.log(e);
+
+        s.refresh(); // first refreshing otherwise an error occurs
+
+        ///deletion operation
+        var edgeid=document.getElementById('edgeid').value;
+
+        try{
+            ///dropping edges now
+            console.log(s.graph.edges());
+            s.graph.dropEdge(edgeid);
+            console.log(s.graph.edges());
+
+            s.refresh();
+            console.log('edge deletion successful.');
+        }
+        catch(err){
+            console.log('edge deletion error');
+        }
+
+        resetedgemodal();
+    }
+
+    ///---------------------------------dragging nodes--------------------------------
+
+    // Initialize the dragNodes plugin:
+    var dragListener = sigma.plugins.dragNodes(s, s.renderers[0]);
+
+    dragListener.bind('startdrag', function(event) {
+      console.log(event);
+    });
+    dragListener.bind('drag', function(event) {
+      console.log(event);
+    });
+    dragListener.bind('drop', function(event) {
+      console.log(event);
+    });
+    dragListener.bind('dragend', function(event) {
+      console.log(event);
+    });
+
+    ///------------------------------js object builder----------------------------------
+    function buildobj(){
+        var obj=new Object();
+        obj.errors=[]; ///this array will contain all the errors
+
+        var basicgraph=s.graph;
+        var allstates=basicgraph.nodes();
+        var alltransitions=basicgraph.edges();
+
+        if(allstates.length>0){
+            ///at least 1 state exists
+
+            ///calculating components number 1,4,5
+            var comp1arr=[]; ///set of states, ids
+            var comp2arr=[]; ///Alphabet or, set of symbols
+            var comp3obj=new Object(); ///transition table object, contains state ids
+            var comp4string=""; ///start state, id
+            var comp5arr=[]; ///set of final states, ids
+
+            ///using a start state counter to find out more than one start states
+            var startstatecount=0;
+            for(var ind in allstates){
+                var tmpstate=allstates[ind];
+                var tmpstateid=tmpstate.id;
+
+                comp1arr.push(tmpstateid); ///adding the state
+
+                ///testing start state
+                if(tmpstate.type=='startstate' || tmpstate.type=='bothstate'){
+                    comp4string=tmpstateid;
+                    startstatecount++;
+                }
+
+                ///testing final state
+                if(tmpstate.type=='finalstate'  || tmpstate.type=='bothstate'){
+                    comp5arr.push(tmpstateid);
+                }
+            }
+
+            if(startstatecount==1){
+                ///only 1 start state found
+
+                ///finding out component 2
+                var arrofsymbols=[]; ///it will contain all symbols with repetition
+                for(var ind in alltransitions){
+                    var tmpedge=alltransitions[ind];
+                    var tmpedgelabel=tmpedge.label;
+
+                    var tmparr=tmpedgelabel.split(','); ///splitting all individual alphabets
+
+                    arrofsymbols=arrofsymbols.concat(tmparr);
+                }
+                ///finding out unique symbols
+                var uniquesymbols = arrofsymbols.filter((item, i, ar) => ar.indexOf(item) === i);
+                ///removing empty character alphabets
+                var comp2arr = uniquesymbols.filter((item,i,ar) => (item=="") ? false : true);
+                ///sorting the alphabet set
+                comp2arr.sort();
+
+                ///finding out component 3
+                for(var ind in alltransitions){
+                    var tmpedge=alltransitions[ind];
+                    var tmpedgelabel=tmpedge.label;
+
+                    var src=tmpedge.source;  ///this returns only node id
+                    var dest=tmpedge.target; /// this returns only node id
+
+                    var chars=tmpedgelabel.split(',');
+                    for(var ind1 in chars){
+                        ///for each input symbol we are saving the destination to cell src, alphabet
+                        var symbol=chars[ind1];
+
+                        ///first checking whether the src already exists within comp2obj
+                        var comp3objkeys=Object.keys(comp3obj);
+                        if(comp3objkeys.indexOf(src)!=-1){
+                            ///the object has key named 'src'
+
+                            ///now checking whether key exists for the input symbol
+                            var symbolkeys=Object.keys(comp3obj[src]);
+                            if(symbolkeys.indexOf(symbol)!=-1){
+                                comp3obj[src][symbol].push(dest);
+                            }
+                            else{
+                                ///creating key for this new symbol
+                                comp3obj[src][symbol]=[];
+                                comp3obj[src][symbol].push(dest);
+                            }
+                        }
+                        else{
+                            ///creating new entry for src
+                            comp3obj[src]=new Object();
+                            comp3obj[src][symbol]=[];
+                            comp3obj[src][symbol].push(dest);
+                        }
+
+                        comp3obj[src][symbol].sort(); ///keeping the values in sorted order
+                    }
+                }
+
+                ///building the final object
+                obj['comp1']=comp1arr;
+                obj['comp2']=comp2arr;
+                obj['comp3']=comp3obj;
+                obj['comp4']=comp4string;
+                obj['comp5']=comp5arr;
+            }
+            else{
+                if(startstatecount>1) obj.errors.push('Invalid state diagram. More than 1 start states!!!!');
+                else if(startstatecount==0) obj.errors.push('Invalid state diagram. No Start state defined!!!!');
+            }
+        }
+        else{
+            obj.errors.push('Empty state diagram.');
+        }
+
+        ///finally returning the obj object
+        console.log(obj);
+        return obj;
+    }
+
+    ///------------------------------showing transition table on request--------------------
+    document.getElementById('showtrtable').addEventListener('click',showtransitiontable);
+    function showtransitiontable(e){
+        console.log('showing transtion table');
+        console.log(e);
+
+        var stateobj=buildobj();
+        if(stateobj.errors.length==0){
+            var tablestring="";
+            tablestring+="<table class='table table-striped'>";
+                ///writing table heading section
+                tablestring+="<thead><tr>";
+                    tablestring+="<th></th>"; ///adding first empty column
+                    for(var ind in stateobj['comp2']){
+                        var cursymbol=stateobj['comp2'][ind];
+                        tablestring+="<th>"+cursymbol+"</th>"; ///adding 1 column per alhapbet symbol
+                    }
+                tablestring+="</tr></thead>";
+
+                ///creating table body layout
+                tablestring+="<tbody>";
+                    ///adding rows for each state
+                    for(var ind in stateobj['comp1']){
+                        tablestring+="<tr>";
+                        var curstateid=stateobj['comp1'][ind];
+
+                            tablestring+="<th><b><code>"+s.graph.getNodeLabel(curstateid)+"</b></code></th>";
+                            for(var ind1 in stateobj['comp2']){
+                                tablestring+="<td>{ ";
+                                var cursymbol=stateobj['comp2'][ind1];
+                                console.log(curstateid+" "+cursymbol);
+                                    ///transition table may or may not have entry for this state and symbol
+                                    ///let's check
+                                    var statekeys=Object.keys(stateobj['comp3']);
+                                    if(statekeys.indexOf(curstateid)!=-1){
+                                        var content=stateobj['comp3'][curstateid];
+                                        ///this state may not have values for each symbol
+                                        var symbolkeys=Object.keys(content);
+                                        if(symbolkeys.indexOf(cursymbol)!=-1){
+                                            var finalcontent=content[cursymbol];
+                                            console.log(finalcontent);
+                                            var contentstring=finalcontent.map(s.graph.getNodeLabel).join(',');
+                                            console.log(contentstring);
+                                            tablestring+=contentstring;
+                                        }
+                                        else{
+                                            ///no entry exists for this symbol
+                                            tablestring+="";
+                                        }
+
+                                    }
+                                    else{
+                                        ///no transitions for this state
+                                        tablestring+="";
+                                    }
+
+                                tablestring+=" }</td>";
+                            }
+
+                        tablestring+="</tr>";
+                    }
+                tablestring+="</tbody>";
+
+            tablestring+="</table>";
+            document.getElementById('tablecontainer').innerHTML=tablestring;
+
+            ///hiding the collapsible pane section
+            $('.collapse').collapse('toggle');
+        }
+        else{
+            console.log(stateobj['errors']);
+            ///hiding the collapsible pane section
+            $('.collapse').collapse('hide');
+            window.alert("Invalid State Diagram.");
+        }
+    }
+
+    ///--------------------formal definition generation----------------------------
+    document.getElementById('generatebtn').addEventListener('click',generateformaldef);
+    function generateformaldef(e){
+        var stateobj=buildobj();
+        if(stateobj.errors.length==0){
+            document.getElementById('comp1').innerText=stateobj['comp1'].map(s.graph.getNodeLabel).join(',');
+            document.getElementById('comp2').innerText=stateobj['comp2'].filter((item, i, ar) => (item==String.fromCharCode(949)) ? false : true).join(',');
+            document.getElementById('comp4').innerText=s.graph.getNodeLabel(stateobj['comp4']);
+            document.getElementById('comp5').innerText=stateobj['comp5'].map(s.graph.getNodeLabel).join(',');
+        }
+        else{
+            console.log(stateobj['errors']);
+            window.alert("Invalid State Diagram.");
+        }
+    }
+
+    ///-------------------input simulation string-----------------------------------------------------------
+    document.getElementById('simulatebtn').addEventListener('click', simulatemodal);
+    function simulatemodal(e){
+        console.log('input simulation clicked');
+        console.log(e);
+
+        var stateobj=buildobj();
+        if(stateobj['errors'].length==0){
+            ///valid graph
+
+
+        }
+        else{
+            console.log(stateobj['errors']);
+            window.alert("Invalid State Diagram.");
+        }
+    }
+})();
