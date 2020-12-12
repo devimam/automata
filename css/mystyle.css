@@ -1,0 +1,96 @@
+/*
+Title: Automata(DFA, NFA) Simulator
+Author: Mohammad Imam Hossain
+Date: 12/12/2020
+All rights reserved.
+*/
+
+body{
+    background-color: #47476b;
+    background-image: url('../images/background.jpeg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center center;
+}
+
+#mainbody{
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
+.myheading{
+    padding:5px;
+    margin:0px;
+    height: 60px;
+    color: #ffff80;
+}
+
+#graph-container{
+  /* without space between operators calc won't work */
+  height: calc(100vh - 60px - 40px - 8px); /* 60px for heading and 40px for footer and 8px for bottom margin of drawing board */
+  width: 100%;
+  margin: auto;
+  position: relative;
+  overflow: hidden;
+
+  /* border: 1px solid rgb(255,51,51); */
+  box-shadow: 0 2px 4px 0 rgba(255,255,102,0.2), 0 3px 10px 0 rgba(255,255,102,0.19);
+  background-color: rgba(0,0,0,0.3);
+
+  margin-bottom: 8px;
+}
+
+div .modal-header{
+    color: rgb(255,51,51);
+}
+
+div .modal-body{
+    color: black;
+}
+
+#rightside{
+    background-color: #f2f2f2;
+}
+
+#rightside thead{
+    color: #990000;
+}
+
+#formaldef{
+    font-weight: bold;
+	color: black;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2), 0 3px 10px 0 rgba(0,0,0,0.19);
+}
+
+#formaldef code{
+    color: #990000;
+}
+
+#generatebtn{
+    background-color: #660000;
+    color: white;
+}
+
+.copyright-lg{
+    width: 100%;
+    height: 40px;
+    padding: 5px;
+    text-align:center;
+    color: #e6e600;
+    position: relative;
+    bottom: 0px;
+    z-index: 100;
+    margin:none;
+}
+
+.copyright-sm{
+    width: 100%;
+    height: 40px;
+    padding: 5px;
+    text-align:center;
+    color: #990000;
+    position: relative;
+    bottom: 0px;
+    z-index: 100;
+    margin:none;
+}
