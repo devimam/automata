@@ -110,67 +110,70 @@
 
                 <!-- right side: the formal definition part of the graph -->
                 <div class="col-lg-4" id="rightside">
-                    <table class="table table-hover shadoweffect" id="formaldef">
-                        <thead>
-                            <tr>
-                                <th scope="colgroup" colspan="2">
-                                    <h4>
-                                        Formal Definition
-                                        <button class='btn btn-sm' id="generatebtn" style="float:right;">
-                                            <i class="fas fa-play" aria-hidden="true"></i>
-                                            Generate
-                                        </button>
-                                    <h4>
-                                </th>
-                            </tr>
-                        </thead>
 
-                        <tbody>
-                            <tr>
-                                <td>States, <b><code>Q</code></b></td>
-                                <td>
-                                    <b><code>{ <span id='comp1'></span> }</code></b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Alphabet, <b><code>&Sigma;</code></b></td>
-                                <td>
-                                    <b><code>{ <span id='comp2'></span> }</code></b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    Transition Function, <b><code>&delta;</code></b>
-                                </td>
-                                <td>
-                                    For DFA, <b><code>&delta; : Q x &Sigma; &rightarrow; Q</code></b>
-                                    <br/>
-                                    For NFA, <b><code>&delta; : Q x &Sigma;<sub>&epsilon;</sub> &rightarrow; P(Q)</code>
-                                    <br/>
-                                    <br/>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" id='showtrtable'>
-                                        Show Transition Table
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Start State, <b><code>q<sub>0</sub> &Element; Q </code><b></td>
-                                <td>
-                                    <b><code><span id='comp4'></span></code></b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Final States, <b><code>F &SubsetEqual; Q</code><b></td>
-                                <td>
-                                    <b><code>{ <span id='comp5'></span> }</code></b>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="card card-body shadoweffect">
+                        <h4>
+                            Formal Definition
+                            <button class='btn btn-sm' id="generatebtn" style="float:right;" data-toggle="collapse" href="#formaldefcollapse">
+                                <i class="fas fa-play"></i> <span id='showbtnlabel'>Show</span>
+                            </button>
+                        </h4>
+
+                        <div class="collapse" id="formaldefcollapse">
+                            <div id="formaldeferror" style="color:red;"></div>
+                            <div id="tableportion">
+                                <table class="table table-hover" id="formaldef">
+                                    <tbody>
+                                        <tr>
+                                            <td>States, <b><code>Q</code></b></td>
+                                            <td>
+                                                <b><code>{ <span id='comp1'></span> }</code></b>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Alphabet, <b><code>&Sigma;</code></b></td>
+                                            <td>
+                                                <b><code>{ <span id='comp2'></span> }</code></b>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                Transition Function, <b><code>&delta;</code></b>
+                                            </td>
+                                            <td>
+                                                For DFA, <b><code>&delta; : Q x &Sigma; &rightarrow; Q</code></b>
+                                                <br/>
+                                                For NFA, <b><code>&delta; : Q x &Sigma;<sub>&epsilon;</sub> &rightarrow; P(Q)</code>
+                                                <br/>
+                                                <br/>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" id='showtrtable' data-toggle="collapse" href="#collapsesection">
+                                                    Show Transition Table
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Start State, <b><code>q<sub>0</sub> &Element; Q </code><b></td>
+                                            <td>
+                                                <b><code><span id='comp4'></span></code></b>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Final States, <b><code>F &SubsetEqual; Q</code><b></td>
+                                            <td>
+                                                <b><code>{ <span id='comp5'></span> }</code></b>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="collapse" id="collapsesection">
-                      <div class="shadoweffect card card-body" id="tablecontainer">
+                      <div class="shadoweffect card card-body">
                           <!-- transition table code here -->
+                          <h4>Transition Table</h4>
+                          <div id="tablecontainer"></div>
                       </div>
                     </div>
 
@@ -184,6 +187,19 @@
                                 <button type="button" id="simulatebtn" class="btn" style="width:100%;"><i class="fas fa-magic"></i> Simulate</button>
                             </div>
                         </div>
+                        </form>
+                    </div>
+
+                    <div id="simulate" class="card card-body shadoweffect" style="margin-bottom:10px;">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <button type="button" id="nfatodfabtn" class="btn" style="width:100%;margin-bottom:5px">NFA <i class="fas fa-long-arrow-alt-right"></i> DFA</button>
+                                </div>
+                                <div class="col-md-12">
+                                    <div id="nfatodfapanel"></div>
+                                </div>
+                            </div>
                         </form>
                     </div>
 
