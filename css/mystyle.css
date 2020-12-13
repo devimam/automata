@@ -50,9 +50,11 @@ div .modal-body{
 
 #rightside{
     background-color: #f2f2f2;
+    height:100vh;
+    overflow: auto;
 }
 
-#rightside thead{
+#rightside h4{
     color: #990000;
 }
 
@@ -74,7 +76,7 @@ div .modal-body{
     color: #990000;
 }
 
-#generatebtn, #simulatebtn{
+#generatebtn, #simulatebtn, #nfatodfabtn{
     background-color: #660000;
     color: white;
 }
@@ -101,4 +103,17 @@ div .modal-body{
     bottom: 0px;
     z-index: 100;
     margin:none;
+}
+
+#nfatodfapanel{
+    /* without space between operators calc won't work */
+    height: 500px; /* 60px for heading and 40px for footer and 8px for bottom margin of drawing board */
+    width: 100%;
+    margin: auto;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #990000;
+    border-radius: 5px;
+
+      /* background-color: rgba(0,0,0,0.3); */
 }
