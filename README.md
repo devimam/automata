@@ -1,6 +1,6 @@
 # Finite Automata Simulator
 
-A web based project to easily design the DFA, NFA state diagrams, to convert from NFA/DFA to corresponding formal definition. Have plan to add more features in future, stay connected :)
+A web based project to easily design the DFA, NFA state diagrams, to convert NFA to equivalent DFA, to convert from NFA/DFA to corresponding formal definition. Have plan to add more features in future, stay connected :)
 
 ## Getting Started
 
