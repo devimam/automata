@@ -88,16 +88,17 @@
             <div class="row">
                 <!-- left side: the container of the graph -->
                 <div class="col-lg-8" id="mycontainer">
-                    <h1 class="myheading">
-                        <div style="display:inline;">Finite Automata Simulator</div>
-                        <div style="float:right;display:inline">
-                            <a href="#" title="Simulator use instructions" style="color:inherit;text-decoration:none;" data-toggle="modal" data-target="#helpmodal">
-                                <img src="images/helpicon.gif" alt="instructions" style="width:40px;height:40px;">
-							</a>
-
+                    <h1 class="myheading" style="position:relative;">
+                        <div style="text-align:center;">Finite Automata Simulator</div>
+                        <div style="position:absolute;top:5px;left:0px;">
                             <iframe src="https://ghbtns.com/github-btn.html?user=devimam&repo=automata&type=star&count=true&size=large"
-							frameborder="0" scrolling="0" width="110" height="30" title="Star this project"></iframe>
+							frameborder="0" scrolling="0" height="30" title="Star this project"></iframe>
                         </div>
+						<div style="position:absolute;right:0px;top:5px;">
+                            <a href="#" title="Simulator use instructions" style="color:inherit;text-decoration:none;" data-toggle="modal" data-target="#helpmodal">
+                                <img src="images/help.png" alt="instructions" style="width:30px;height:30px;">
+							</a>
+						</div>
                     </h1>
                     <!-- sigmajs drawing section -->
                     <div id="graph-container" title="Draw Here"></div>
