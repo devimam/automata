@@ -8,7 +8,7 @@ Just visit the [gitsite link](https://devimam.github.io/automata/) and enjoy.
 
 ### Prerequisites
 
-To run this project, you just need a browser(any one of the latest, for example: google chrome, firefox, tor etc.) in your PC or mobile device.
+To run this project, you just need a web browser in your PC or mobile device.
 
 ### Installation
 
@@ -29,7 +29,7 @@ Version 1.0
 
 ## Authors
 
-* **Mohammad Imam Hossain** - [LinkedIn](https://www.linkedin.com/in/mohammad-imam-hossain/)
+* **Mohammad Imam Hossain** - [LinkedIn](https://www.linkedin.com/in/mohammad-imam/)
 
 ## License
 
